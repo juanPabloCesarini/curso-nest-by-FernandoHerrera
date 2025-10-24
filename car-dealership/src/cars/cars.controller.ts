@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Body,
   Controller,
@@ -6,12 +5,11 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
-  // ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
 import { CarsService } from './cars.service';
-import { CreateCarDto } from './dto/create-car.dto';
+import { CreateCarDto, UpdateCarDto } from './dto/';
 
 @Controller('cars')
 export class CarsController {
@@ -30,20 +28,18 @@ export class CarsController {
   }
   @Post()
   createCar(@Body() createCarDto: CreateCarDto) {
-    return createCarDto;
+    return this.carsService.create(createCarDto);
   }
   @Patch(':id')
-  updateCar(@Param('id') id: string, @Body() body: any) {
-    return body;
+  updateCar(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() UpdateCarDto: UpdateCarDto,
+  ) {
+    return this.carsService.update(id, UpdateCarDto);
   }
 
   @Delete(':id')
-  deleteCarById(@Param('id') id: string) {
-    console.log(id);
-
-    return {
-      method: 'delete',
-      id: id,
-    };
+  deleteCarById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.carsService.delete(id);
   }
 }
