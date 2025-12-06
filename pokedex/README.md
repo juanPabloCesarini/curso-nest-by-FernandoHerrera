@@ -11,7 +11,7 @@ npm install
 ```
 3. Tener Nest CLI instalado
   ```
-  nm i -g @nestjs/cli
+  npm i -g @nestjs/cli
   ```
 4. Levantar la base de datos
 ```
