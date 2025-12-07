@@ -17,4 +17,8 @@ npm install
 ```
 docker-compose up -d
 ```
- 
+5. Cargar el seed
+
+```
+http://localhost:3000/api/v2/seed
+```
