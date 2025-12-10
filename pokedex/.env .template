@@ -1,0 +1,5 @@
+
+
+MONGODB=mongodb://localhost:27017/nest-pokedex
+PORT=3000
+DEFAULT_LIMIT=5

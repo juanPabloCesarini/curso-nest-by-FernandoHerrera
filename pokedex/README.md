@@ -17,8 +17,22 @@ npm install
 ```
 docker-compose up -d
 ```
-5. Cargar el seed
+5. Clonar el archivo __.env.template__ y renombrar a __.env__
+
+6. Llenar las variables de entorno en el ```.env```
+
+7. Ejecutar la app en dev:
+   
+```
+npm run start:dev
+```
+
+8. Cargar el seed
 
 ```
 http://localhost:3000/api/v2/seed
 ```
+
+## Stack usado
+* MongoDB
+* Nest
