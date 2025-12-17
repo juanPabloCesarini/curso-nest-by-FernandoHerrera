@@ -1,7 +1,7 @@
 import { BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ProductImage } from "./product_image.entity";
 
-@Entity()
+@Entity({name: 'products'})
 export class Product {
 
     @PrimaryGeneratedColumn('uuid')
@@ -34,7 +34,7 @@ export class Product {
     @OneToMany(
         () => ProductImage,
         (productImage) => productImage.product,
-        { cascade: true, }
+        { cascade: true, eager: true }
     )
     images?: ProductImage[];
 

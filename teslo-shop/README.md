@@ -10,3 +10,4 @@
 4. Configurar las variables de entorno
 5. Levantar la base de datos: ```docker-compose up -d```
 6. Levantar el proyecto en modo desarrollo: ``` npm run start:dev```
+7. Ejecutar seed: ```http://localhost:3000/api/seed```
