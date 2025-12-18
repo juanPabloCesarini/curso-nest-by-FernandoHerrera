@@ -1,7 +1,7 @@
 import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { fileFilter } from './fileFilter.helper';
+import { fileFilter, fileNamer} from './helpers';
 import { diskStorage } from 'multer';
 
 @Controller('files')
@@ -13,7 +13,8 @@ export class FilesController {
     fileFilter: fileFilter,
     // limits: { fileSize: 1024 * 1024 * 5 } // 5MB limit
     storage: diskStorage({
-      destination: 'statics/uploads',
+      destination: 'statics/products',
+      filename: fileNamer
     })
   }))
     uploadProductImage(
@@ -23,6 +24,7 @@ export class FilesController {
     if(!file) {
       throw new BadRequestException('File not provided or invalid');
     }
+    console.log(file);
     return {
       fileName: file.originalname,
       message: 'File uploaded successfully'
