@@ -4,13 +4,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/auth.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+import { JwtService } from '@nestjs/jwt';
 
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private readonly userRepositrory: Repository<User>
+    private readonly userRepositrory: Repository<User>,
+    private readonly jwtService: JwtService,
   ) { }
 
   async create(createUserDto: CreateUserDto) {
@@ -23,7 +26,10 @@ export class AuthService {
       });
       await this.userRepositrory.save(user)
       //delete user.password;
-      return user
+      return {
+        ...user,
+        token: this.getJwtToken({ email: user.email })
+      }
     } catch (error) {
       this.handlerDBErrors(error);
 
@@ -38,15 +44,23 @@ export class AuthService {
       where: { email },
       select: { email: true, password: true }
     })
-    
+
     if (!user)
       throw new UnauthorizedException('Credenciales inválidas')
-    
 
-    if (bcrypt.compareSync(password, user.password))
+
+    if (!bcrypt.compareSync(password, user.password))
       throw new UnauthorizedException('Credenciales inválidas')
 
-    return user;
+    return {
+      ...user,
+      token: this.getJwtToken({ email: user.email })
+    }
+  }
+
+  private getJwtToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload);
+    return token;
   }
 
   private handlerDBErrors(error: any): never {
