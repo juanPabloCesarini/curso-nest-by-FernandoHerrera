@@ -5,13 +5,15 @@ import { AuthGuard } from '@nestjs/passport';
 
 import { User } from './entities/auth.entity';
 
-import { RawHeaders, GetUser } from './decorators';
+import { RawHeaders, GetUser, Auth } from './decorators';
 import { UserRoleGuard } from './guards/user-role/user-role.guard';
+import { RoleProtected } from './decorators/role-protected.decorator';
+import { ValidRoles } from './interfaces';
 
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   create(@Body() createUserDto: CreateUserDto) {
@@ -19,7 +21,7 @@ export class AuthController {
   }
 
   @Post('login')
-  loginUser(@Body() loginUserDto:LoginUserDto){
+  loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto)
 
   }
@@ -27,14 +29,14 @@ export class AuthController {
   @Get('private')
   @UseGuards(AuthGuard())
   testingPrivateRoute(
-   // @Req() request:Express.Request
-   @GetUser() user:User,
-   @GetUser('email') userEmail:string,
-   @RawHeaders() rawHeaders:string[] 
-  ){
+    // @Req() request:Express.Request
+    @GetUser() user: User,
+    @GetUser('email') userEmail: string,
+    @RawHeaders() rawHeaders: string[]
+  ) {
     return {
-      ok:true,
-      message:'Hola mundo private',
+      ok: true,
+      message: 'Hola mundo private',
       user,
       userEmail,
       rawHeaders
@@ -42,20 +44,35 @@ export class AuthController {
   }
 
   @Get('private2')
-  @SetMetadata('roles',['admin','super-user'])
+  //  @SetMetadata('roles',['admin','super-user'])
+  @RoleProtected(ValidRoles.user)
   @UseGuards(AuthGuard(), UserRoleGuard)
   testingPrivateRoute2(
-    @GetUser() user:User,
-    @GetUser('email') userEmail:string,
-    @RawHeaders() rawHeaders:string[] 
-  ){
+    @GetUser() user: User,
+    @GetUser('email') userEmail: string,
+    @RawHeaders() rawHeaders: string[]
+  ) {
     return {
-      ok:true,
-      message:'Hola mundo private2',
+      ok: true,
+      message: 'Hola mundo private2',
       user,
-      userEmail,
-      rawHeaders
+
+    }
+  }
+
+  @Get('private3')
+  @Auth(ValidRoles.user)
+  privateRoute3(
+    @GetUser() user: User,
+  ) {
+    return {
+      ok: true,
+      user
     }
   }
 
 }
+
+
+
+
