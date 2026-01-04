@@ -63,6 +63,7 @@ export class AuthService {
     return token;
   }
 
+ 
   private handlerDBErrors(error: any): never {
     if (error.code === '23505') throw new BadRequestException(error.detail);
 
@@ -71,6 +72,12 @@ export class AuthService {
     throw new InternalServerErrorException('Please check server logs')
   }
 
+  async checkAuthStatus(user: User) {
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id })
+    }
+  }
 
 
 }

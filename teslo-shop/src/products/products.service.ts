@@ -8,6 +8,7 @@ import { PaginationDto } from '../common/dtos/pagination.dto';
 
 import { validate as isUUID } from 'uuid';
 import { ProductImage } from './entities';
+import { User } from 'src/auth/entities/auth.entity';
 
 @Injectable()
 export class ProductsService {
@@ -22,21 +23,28 @@ export class ProductsService {
     private readonly productImageRepository: Repository<ProductImage>,
 
     private readonly dataSource: DataSource,
-  
-  ) { }
-  async create(createProductDto: CreateProductDto) {
 
-    const {images = [], ...productDetails} = createProductDto;
+  ) { }
+  async create(createProductDto: CreateProductDto, user: User) {
+
     try {
+      const { images = [], ...productDetails } = createProductDto;
+
       const product = this.productRepository.create({
         ...productDetails,
-        images: images.map( image => this.productImageRepository.create({ url: image }) ),
+        images: images.map(image => this.productImageRepository.create({ url: image })),
+        user,
       });
+
       await this.productRepository.save(product);
-      return {...product, images };
+
+      return { ...product, images };
+
     } catch (error) {
       this.handleDBExceptions(error);
     }
+
+
   }
 
   async findAll(paginationDto: PaginationDto) {
@@ -46,11 +54,11 @@ export class ProductsService {
       skip: offset,
       relations: { images: true }
     });
-    return products.map( product => ({
+    return products.map(product => ({
       ...product,
-      images: product.images?.map( img => img.url ) ,
+      images: product.images?.map(img => img.url),
     }));
-    
+
   }
 
   async findOne(term: string) {
@@ -66,8 +74,8 @@ export class ProductsService {
         title: term.toLowerCase(),
         slug: term.toLowerCase()
       })
-      .leftJoinAndSelect('prod.images', 'prodImages')
-      .getOne();
+        .leftJoinAndSelect('prod.images', 'prodImages')
+        .getOne();
     }
     if (!product) {
       throw new NotFoundException(`Product with id or slug "${term}" not found`);
@@ -77,13 +85,13 @@ export class ProductsService {
 
   async findOnePlain(term: string) {
     const { images = [], ...rest } = await this.findOne(term);
-    return {  
+    return {
       ...rest,
-      images: images.map( img => img.url )
+      images: images.map(img => img.url)
     };
   }
-  
-  async update(id: string, updateProductDto: UpdateProductDto) {
+
+  async update(id: string, updateProductDto: UpdateProductDto, user: User) {
 
     const { images, ...toUpdate } = updateProductDto;
 
@@ -93,7 +101,7 @@ export class ProductsService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
-    const product = await this.productRepository.preload({id, ...toUpdate,});
+    const product = await this.productRepository.preload({ id, ...toUpdate, });
     if (!product) {
       throw new NotFoundException(`Product with id "${id}" not found`);
     }
@@ -103,13 +111,13 @@ export class ProductsService {
         product.images = images.map(
           image => this.productImageRepository.create({ url: image })
         );
-      } 
-
+      }
+      product.user = user;
       await queryRunner.manager.save(product);
       await queryRunner.commitTransaction();
       await queryRunner.release();
 
-  //  await this.productRepository.save(product);
+      //  await this.productRepository.save(product);
       return this.findOnePlain(product.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -119,9 +127,9 @@ export class ProductsService {
   }
 
   async remove(id: string) {
-    const product = await this.findOne( id );
-    await this.productRepository.remove( product );
-    
+    const product = await this.findOne(id);
+    await this.productRepository.remove(product);
+
   }
 
   private handleDBExceptions(error: any) {
@@ -133,7 +141,7 @@ export class ProductsService {
   }
 
   async deleteAllProducts() {
-    const query = this.productRepository.createQueryBuilder('product');   
+    const query = this.productRepository.createQueryBuilder('product');
     try {
       return await query
         .delete()
@@ -141,6 +149,6 @@ export class ProductsService {
         .execute();
     } catch (error) {
       this.handleDBExceptions(error);
-    }   
+    }
   }
 }
